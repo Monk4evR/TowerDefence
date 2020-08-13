@@ -2,10 +2,10 @@
 
 function love.load()
 
-    red = 115/255
-    green = 27/255
-    blue = 135/255
-    alpha = 50/100
+    red = 40/255
+    green = 160/255
+    blue = 255/255
+    alpha = 0/100
     love.graphics.setBackgroundColor( red, green, blue, alpha )
     success = love.window.setMode( 1200, 800 )
 
@@ -18,23 +18,23 @@ function love.load()
 
     Map1 = {
        [1] = {1,1,1,1,1,1,1,1,1,1},
-       [2] = {1,21,22,22,23,1,1,1,1,1},
+       [2] = {1,2,3,3,4,1,1,1,1,1},
        [3] = {1,1,1,1,1,1,1,1,1,1},
        [4] = {1,1,1,1,1,1,1,1,1,1},
-       [5] = {1,1,1,1,25,1,1,1,25,1},
+       [5] = {1,1,1,1,6,1,1,1,6,1},
        [6] = {1,1,1,1,1,1,1,1,1,1},
-       [7] = {1,1,1,1,24,1,1,1,1,1},
+       [7] = {1,1,1,1,5,1,1,1,1,1},
        [8] = {1,1,1,1,1,1,1,1,1,1},
-       [9] = {1,1,25,1,1,1,1,1,1,1},
-       [10] = {1,1,1,1,1,1,1,1,25,1},   
+       [9] = {1,1,5,1,1,1,1,1,1,1},
+       [10] = {1,1,1,1,1,1,1,1,5,1},   
     }
 
     EnumMapElem = {
-        [1] = "RIVERBEG",
-        [2] = "RIVERSTR",
-        [3] = "RIVEREND",
-        [4] = "WATHER",
-        [5] = "GREENLAND",
+        [1] = "GREENLAND",
+        [2] = "RIVERBEG",
+        [3] = "RIVERSTR",
+        [4] = "RIVEREND",
+        [5] = "WATHER",
         [6] = "ROCKS",
     }
 
@@ -48,6 +48,26 @@ function love.load()
             image[i][y] = love.graphics.newImage( giveTexture( i,y ))
         end    
     end
+
+    -- Object properties for each type of map object are stored here in columns ([object type] = {prperty1, property2}) in the order: 
+    -- texture name and location
+    -- enemy can walk through [0-no; 1-yes, 2-slowed down],
+    -- object can be build on it [ 0-no, 1-yes,]
+    -- map object can be cleared from osbstacles [0-no, 1-yes]
+    -- type of object that this obcject can be changed to [0-default, object number]
+    objProperties = {
+        [1] = {asset= "assets/grass_N.png", walk= 1, build= 1, clear= 0, typec= 0},
+        [2] = {asset= "assets/river_start_N.png",walk= 2, build= 0, clear= 0, typec= 0},
+        [3] = {asset= "assets/river_straight_N.png",walk= 2, build= 0, clear= 0, typec= 0},
+        [4] = {asset= "assets/river_end_S.png",walk= 2, build= 0, clear= 0, typec= 0},
+        [5] = {asset= "assets/water_N.png",walk= 0, build= 0, clear= 0, typec= 0},
+        [6] = {asset= "assets/stone_rocks_N.png",walk= 2, build= 0, clear= 1, typec= 1},
+        -- [7] = {1,1,1,1,1},
+        -- [8] = {1,1,1,1,1},
+        -- [9] = {1,1,1,1,1},
+        -- [10] = {1,1,1,1,1}, 
+
+    }
 end
 
 
@@ -67,32 +87,8 @@ end
 
 -- load texture from enum
 function giveTexture( row, col )
-    local enum = Map1[row][col]
-    if enum == 1 --EnumMapElem.GREENLAND 
-    then
-        return "assets/grass_N.png"
-    end
-    if enum == 21 --EnumMapElem.RIVERBEG 
-    then
-        return "assets/river_start_N.png"
-    end
-    if enum == 22 --EnumMapElem.RIVERSTR 
-    then
-        return "assets/river_straight_N.png"
-    end
-    if enum == 23 --EnumMapElem.RIVEREND 
-    then
-        return "assets/river_end_S.png"
-    end
-    if enum == 24 --EnumMapElem.WATHER 
-    then
-        return "assets/water_N.png"
-    end
-    if enum == 25 --EnumMapElem.ROCKS 
-    then
-        return "assets/stone_rocks_N.png"
-    end
-
+    local type = Map1[row][col]
+    return objProperties[type].asset 
 end
 
 function moveTroughField( row, col )
