@@ -15,16 +15,16 @@ function love.load()
     offsetcoleven = math.floor( 91 * scale )
 
     Map1 = {
-       [1] = {5,5,5,5,5,5,5,5,5,5},
-       [2] = {1,2,2,2,3,5,5,5,5,5},
-       [3] = {5,5,5,5,5,5,5,5,5,5},
-       [4] = {5,5,5,5,5,5,5,5,5,5},
-       [5] = {5,5,5,5,5,5,5,6,5,5},
-       [6] = {5,5,5,5,5,5,5,5,5,5},
-       [7] = {5,5,5,5,4,5,5,5,5,5},
-       [8] = {5,5,5,5,5,5,5,5,5,5},
-       [9] = {5,5,6,5,5,5,5,5,5,5},
-       [10] = {5,5,5,5,5,5,5,5,6,5},   
+       [1] = {1,1,1,1,1,1,1,1,1,1},
+       [2] = {1,21,22,22,23,1,1,1,1,1},
+       [3] = {1,1,1,1,1,1,1,1,1,1},
+       [4] = {1,1,1,1,1,1,1,1,1,1},
+       [5] = {1,1,1,1,25,1,1,1,25,1},
+       [6] = {1,1,1,1,1,1,1,1,1,1},
+       [7] = {1,1,1,1,24,1,1,1,1,1},
+       [8] = {1,1,1,1,1,1,1,1,1,1},
+       [9] = {1,1,25,1,1,1,1,1,1,1},
+       [10] = {1,1,1,1,1,1,1,1,25,1},   
     }
 
     EnumMapElem = {
@@ -54,33 +54,42 @@ function love.update( dt )
 end
 
 -- load texture from enum
-function giveTexture(row, col)
+function giveTexture( row, col )
     local enum = Map1[row][col]
-    if enum == 1 --EnumMapElem.RIVERBEG 
-    then
-        return "assets/river_start_N.png"
-    end
-    if enum == 2 --EnumMapElem.RIVERSTR 
-    then
-        return "assets/river_straight_N.png"
-    end
-    if enum == 3 --EnumMapElem.RIVEREND 
-    then
-        return "assets/river_end_N.png"
-    end
-    if enum == 4 --EnumMapElem.WATHER 
-    then
-        return "assets/water_N.png"
-    end
-    if enum == 5 --EnumMapElem.GREENLAND 
+    if enum == 1 --EnumMapElem.GREENLAND 
     then
         return "assets/grass_N.png"
     end
-    if enum == 6 --EnumMapElem.ROCKS 
+    if enum == 21 --EnumMapElem.RIVERBEG 
+    then
+        return "assets/river_start_N.png"
+    end
+    if enum == 22 --EnumMapElem.RIVERSTR 
+    then
+        return "assets/river_straight_N.png"
+    end
+    if enum == 23 --EnumMapElem.RIVEREND 
+    then
+        return "assets/river_end_S.png"
+    end
+    if enum == 24 --EnumMapElem.WATHER 
+    then
+        return "assets/water_N.png"
+    end
+    if enum == 25 --EnumMapElem.ROCKS 
     then
         return "assets/stone_rocks_N.png"
     end
 
+end
+
+function moveTroughField( row, col )
+    local fieldType = Map1[row][col]
+    if fieldType>=1 and fieldType<20 then
+        return true
+    else
+        return false
+    end
 end
 
 function love.draw()
@@ -98,7 +107,7 @@ function love.draw()
                 col = offsetcoleven + offsetcol * y
             end
 
-            if ((mouse.y >= row + elemoffsety) and (mouse.y <= row + elemoffsety + offsetrow) and (mouse.x >= col + elemoffsetx) and (mouse.x <= col + elemoffsetx + offsetcol)) then
+            if ((moveTroughField(i,y) and mouse.y >= row + elemoffsety) and (mouse.y <= row + elemoffsety + offsetrow) and (mouse.x >= col + elemoffsetx) and (mouse.x <= col + elemoffsetx + offsetcol)) then
                 love.graphics.draw( love.graphics.newImage( giveTexture( i,y ) ), col, row+15, 0, scale )
             else
                 love.graphics.draw( love.graphics.newImage( giveTexture( i,y ) ), col, row, 0, scale )
