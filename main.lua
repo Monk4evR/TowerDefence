@@ -1,3 +1,5 @@
+
+
 function love.load()
 
     red = 115/255
@@ -37,7 +39,18 @@ function love.load()
     }
 
     mouse = {}
+
+    image = {}
+
+    for i = 1, 10 , 1 do
+        image[i] = {}
+        for y = 1, 10 , 1 do      
+            image[i][y] = love.graphics.newImage( giveTexture( i,y ))
+        end    
+    end
 end
+
+
 -- ENUM function
 function enum(tbl)
     local length = #tbl
@@ -50,7 +63,6 @@ function enum(tbl)
 end
 -- update world with dt
 function love.update( dt )
-    mouse.x, mouse.y = love.mouse.getPosition()  -- This gets the x and y coordinates of the mouse and assigns those to these respectively.
 end
 
 -- load texture from enum
@@ -95,6 +107,7 @@ end
 function love.draw()
     local col = 0
     local row = 0
+    mouse.x, mouse.y = love.mouse.getPosition()
        
     love.graphics.print("Mouse Coordinates: " .. mouse.x .. ", " .. mouse.y)
 
@@ -107,10 +120,10 @@ function love.draw()
                 col = offsetcoleven + offsetcol * y
             end
 
-            if ((moveTroughField(i,y) and mouse.y >= row + elemoffsety) and (mouse.y <= row + elemoffsety + offsetrow) and (mouse.x >= col + elemoffsetx) and (mouse.x <= col + elemoffsetx + offsetcol)) then
-                love.graphics.draw( love.graphics.newImage( giveTexture( i,y ) ), col, row+15, 0, scale )
+            if ((moveTroughField(i,y) and mouse.y >= row + elemoffsety ) and ( mouse.y <= row + elemoffsety + offsetrow ) and ( mouse.x >= col + elemoffsetx ) and ( mouse.x <= col + elemoffsetx + offsetcol )) then
+                love.graphics.draw( image[i][y], col, row+15, 0, scale )
             else
-                love.graphics.draw( love.graphics.newImage( giveTexture( i,y ) ), col, row, 0, scale )
+                love.graphics.draw( image[i][y], col, row, 0, scale )
             end
             col = 0
         end    
