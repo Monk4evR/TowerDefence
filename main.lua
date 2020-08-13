@@ -1,4 +1,17 @@
 
+objProperties = {
+    [1] = {asset= "assets/grass_N.png", walk= 1, build= 1, clear= 0, typec= 0},
+    [2] = {asset= "assets/river_start_N.png",walk= 2, build= 0, clear= 0, typec= 0},
+    [3] = {asset= "assets/river_straight_N.png",walk= 2, build= 0, clear= 0, typec= 0},
+    [4] = {asset= "assets/river_end_S.png",walk= 2, build= 0, clear= 0, typec= 0},
+    [5] = {asset= "assets/water_N.png",walk= 0, build= 0, clear= 0, typec= 0},
+    [6] = {asset= "assets/stone_rocks_N.png",walk= 2, build= 0, clear= 1, typec= 1},
+}
+    -- [7] = {1,1,1,1,1},
+    -- [8] = {1,1,1,1,1},
+    -- [9] = {1,1,1,1,1},
+    -- [10] = {1,1,1,1,1}, 
+
 
 function love.load()
 
@@ -26,7 +39,7 @@ function love.load()
        [7] = {1,1,1,1,5,1,1,1,1,1},
        [8] = {1,1,1,1,1,1,1,1,1,1},
        [9] = {1,1,5,1,1,1,1,1,1,1},
-       [10] = {1,1,1,1,1,1,1,1,5,1},   
+       [10] = {1,1,1,1,1,1,1,1,6,1},   
     }
 
     EnumMapElem = {
@@ -43,9 +56,11 @@ function love.load()
     image = {}
 
     for i = 1, 10 , 1 do
-        image[i] = {}
-        for y = 1, 10 , 1 do      
-            image[i][y] = love.graphics.newImage( giveTexture( i,y ))
+        for y = 1, 10 , 1 do    
+            local type  = lookuptable( i,y )
+            if image[type] == nil then
+                image[type] = love.graphics.newImage( giveTexture( type ))
+            end
         end    
     end
 
@@ -55,19 +70,7 @@ function love.load()
     -- object can be build on it [ 0-no, 1-yes,]
     -- map object can be cleared from osbstacles [0-no, 1-yes]
     -- type of object that this obcject can be changed to [0-default, object number]
-    objProperties = {
-        [1] = {asset= "assets/grass_N.png", walk= 1, build= 1, clear= 0, typec= 0},
-        [2] = {asset= "assets/river_start_N.png",walk= 2, build= 0, clear= 0, typec= 0},
-        [3] = {asset= "assets/river_straight_N.png",walk= 2, build= 0, clear= 0, typec= 0},
-        [4] = {asset= "assets/river_end_S.png",walk= 2, build= 0, clear= 0, typec= 0},
-        [5] = {asset= "assets/water_N.png",walk= 0, build= 0, clear= 0, typec= 0},
-        [6] = {asset= "assets/stone_rocks_N.png",walk= 2, build= 0, clear= 1, typec= 1},
-        -- [7] = {1,1,1,1,1},
-        -- [8] = {1,1,1,1,1},
-        -- [9] = {1,1,1,1,1},
-        -- [10] = {1,1,1,1,1}, 
 
-    }
 end
 
 
@@ -81,15 +84,22 @@ function enum(tbl)
 
     return tbl
 end
+
 -- update world with dt
 function love.update( dt )
 end
 
--- load texture from enum
-function giveTexture( row, col )
+-- lookuptable - helping function
+function lookuptable( row, col )
     local type = Map1[row][col]
+    return type
+end
+
+-- load texture from enum
+function giveTexture( type )
     return objProperties[type].asset 
 end
+
 
 function moveTroughField( row, col )
     local fieldType = Map1[row][col]
@@ -117,9 +127,9 @@ function love.draw()
             end
 
             if ((moveTroughField(i,y) and mouse.y >= row + elemoffsety ) and ( mouse.y <= row + elemoffsety + offsetrow ) and ( mouse.x >= col + elemoffsetx ) and ( mouse.x <= col + elemoffsetx + offsetcol )) then
-                love.graphics.draw( image[i][y], col, row+15, 0, scale )
+                love.graphics.draw( image[lookuptable( i, y )], col, row+15, 0, scale )
             else
-                love.graphics.draw( image[i][y], col, row, 0, scale )
+                love.graphics.draw( image[lookuptable( i, y )], col, row, 0, scale )
             end
             col = 0
         end    
