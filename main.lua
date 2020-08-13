@@ -1,17 +1,42 @@
-
-objProperties = {
-    [1] = {asset= "assets/grass_N.png", walk= 1, build= 1, clear= 0, typec= 0},
-    [2] = {asset= "assets/river_start_N.png",walk= 2, build= 0, clear= 0, typec= 0},
-    [3] = {asset= "assets/river_straight_N.png",walk= 2, build= 0, clear= 0, typec= 0},
-    [4] = {asset= "assets/river_end_S.png",walk= 2, build= 0, clear= 0, typec= 0},
-    [5] = {asset= "assets/water_N.png",walk= 0, build= 0, clear= 0, typec= 0},
-    [6] = {asset= "assets/stone_rocks_N.png",walk= 2, build= 0, clear= 1, typec= 1},
+-- -- -- -- -- -- -- 
+-- ENUM DEFINES
+TailName = {
+    GREENLAND = 1,
+    RIVERBEG = 2,
+    RIVERSTR = 3,
+    RIVEREND = 4,
+    WATHER = 5,
+    ROCKS = 6,
 }
+
+EnemyMov = {
+    NOWALK = 0,
+    FULLSPEEDWALK = 1,
+    HALFSPEEDWALK = 2,
+}
+-- -- -- -- -- -- -- 
+
+-- -- -- -- -- -- -- 
+-- MAP OBJECT PROPERTIES for each type of map object are stored here in columns ([object type] = {prperty1, property2}) in the order: 
+-- texture name and location
+-- enemy can walk through [0-no; 1-yes, 2-slowed down],
+-- object can be build on it [ 0-no, 1-yes,]
+-- map object can be cleared from osbstacles [0-no, 1-yes]
+-- type of object that this obcject can be changed to [0-default, object number]
+objProperties = {
+    [1] = {asset= "assets/grass_N.png", walk= EnemyMov.FULLSPEEDWALK, build= true, clear= false, typec= 0},
+    [2] = {asset= "assets/river_start_N.png",walk= EnemyMov.HALFSPEEDWALK, build= false, clear= false, typec= 0},
+    [3] = {asset= "assets/river_straight_N.png",walk= EnemyMov.HALFSPEEDWALK, build= false, clear= false, typec= 0},
+    [4] = {asset= "assets/river_end_S.png",walk= EnemyMov.HALFSPEEDWALK, build= false, clear= false, typec= 0},
+    [5] = {asset= "assets/water_N.png",walk= EnemyMov.NOWALK, build= false, clear= true, typec= 0},
+    [6] = {asset= "assets/stone_rocks_N.png",walk= EnemyMov.HALFSPEEDWALK, build= false, clear= false, typec= 1},
+
     -- [7] = {1,1,1,1,1},
     -- [8] = {1,1,1,1,1},
     -- [9] = {1,1,1,1,1},
     -- [10] = {1,1,1,1,1}, 
-
+}
+-- -- -- -- -- -- -- 
 
 function love.load()
 
@@ -42,17 +67,11 @@ function love.load()
        [10] = {1,1,1,1,1,1,1,1,6,1},   
     }
 
-    EnumMapElem = {
-        [1] = "GREENLAND",
-        [2] = "RIVERBEG",
-        [3] = "RIVERSTR",
-        [4] = "RIVEREND",
-        [5] = "WATHER",
-        [6] = "ROCKS",
-    }
 
     mouse = {}
 
+    -- -- -- -- -- -- --
+    -- CREATE DRAWABLE OBJECT for current map
     image = {}
 
     for i = 1, 10 , 1 do
@@ -63,27 +82,10 @@ function love.load()
             end
         end    
     end
-
-    -- Object properties for each type of map object are stored here in columns ([object type] = {prperty1, property2}) in the order: 
-    -- texture name and location
-    -- enemy can walk through [0-no; 1-yes, 2-slowed down],
-    -- object can be build on it [ 0-no, 1-yes,]
-    -- map object can be cleared from osbstacles [0-no, 1-yes]
-    -- type of object that this obcject can be changed to [0-default, object number]
-
+    -- -- -- -- -- -- --
 end
 
 
--- ENUM function
-function enum(tbl)
-    local length = #tbl
-    for i = 1, length do
-        local v = tbl[i]
-        tbl[v] = i
-    end
-
-    return tbl
-end
 
 -- update world with dt
 function love.update( dt )
@@ -101,9 +103,8 @@ function giveTexture( type )
 end
 
 
-function moveTroughField( row, col )
-    local fieldType = Map1[row][col]
-    if fieldType>=1 and fieldType<20 then
+function moveTroughField( type )
+    if type == TailName.GREENLAND then
         return true
     else
         return false
@@ -117,6 +118,9 @@ function love.draw()
        
     love.graphics.print("Mouse Coordinates: " .. mouse.x .. ", " .. mouse.y)
 
+
+    -- -- -- -- -- -- --
+    -- DRAWABLE OBJECT for current map
     for i = 1, 10 , 1 do
         row = offsetrow * i
         for y = 1, 10 , 1 do
@@ -126,7 +130,7 @@ function love.draw()
                 col = offsetcoleven + offsetcol * y
             end
 
-            if ((moveTroughField(i,y) and mouse.y >= row + elemoffsety ) and ( mouse.y <= row + elemoffsety + offsetrow ) and ( mouse.x >= col + elemoffsetx ) and ( mouse.x <= col + elemoffsetx + offsetcol )) then
+            if ((moveTroughField(lookuptable(i,y)) and mouse.y >= row + elemoffsety ) and ( mouse.y <= row + elemoffsety + offsetrow ) and ( mouse.x >= col + elemoffsetx ) and ( mouse.x <= col + elemoffsetx + offsetcol )) then
                 love.graphics.draw( image[lookuptable( i, y )], col, row+15, 0, scale )
             else
                 love.graphics.draw( image[lookuptable( i, y )], col, row, 0, scale )
@@ -134,5 +138,6 @@ function love.draw()
             col = 0
         end    
     end
+    -- -- -- -- -- -- --
 
 end
