@@ -93,9 +93,6 @@ end
 
 
 
--- update world with dt
-function love.update( dt )
-end
 
 -- lookuptable - helping function
 function lookuptable( row, col )
@@ -117,36 +114,34 @@ function moveTroughField( type )
     end
 end
 
-local text = ""
 function love.wheelmoved( x, y )
-    local wheel_scale = scroll_scale
     if y > 0 then
-        text = "Mouse wheel moved up"
-        scroll_scale = wheel_scale + ( y / 10 )
+        scroll_scale = scroll_scale + ( y / 10 )
     elseif y < 0 then
-        text = "Mouse wheel moved down"
-        scroll_scale = wheel_scale - ( math.abs( y ) / 10 )
+        scroll_scale = scroll_scale - ( math.abs( y ) / 10 )
     end   
 end
 
- 
--- function love.wheelmoved(x, y)
---     if y > 0 then
---         text = "Mouse wheel moved up"
---     elseif y < 0 then
---         text = "Mouse wheel moved down"
---     end
--- end
+function pointingMapElem(row, col)
+    if (mouse.y >= row + (elemoffsety * scroll_scale) ) and ( mouse.y <= row + (elemoffsety * scroll_scale)  + (offsetrow * scroll_scale) ) and ( mouse.x >= col + (elemoffsetx * scroll_scale) ) and ( mouse.x <= col + (elemoffsetx * scroll_scale) + (offsetcol * scroll_scale) ) then
+        return true
+    else
+        return false
+    end
+end
+
+-- update world with dt
+function love.update( dt )
+    mouse.x, mouse.y = love.mouse.getPosition()
+end
+
 
 function love.draw()
     local col = 0
     local row = 0
-
-
-    mouse.x, mouse.y = love.mouse.getPosition()
-    love.graphics.print( "Mouse Coordinates: " .. mouse.x .. ", " .. mouse.y,10 )
+    
+    love.graphics.print( "Mouse Coordinates: " .. mouse.x .. ", " .. mouse.y, 10 )
     love.graphics.print( "Mouse scroll_scale: " .. scroll_scale, 10, 15 )
-    love.graphics.print(text, 10, 30)
     
     -- -- -- -- -- -- --
     -- DRAWABLE OBJECT for current map
@@ -159,8 +154,8 @@ function love.draw()
                 col = offsetcoleven * scroll_scale  + offsetcol * y * scroll_scale 
             end
 
-            if ((moveTroughField(lookuptable(i,y)) and mouse.y >= row + (elemoffsety * scroll_scale)  ) and ( mouse.y <= row + (elemoffsety * scroll_scale)  + offsetrow ) and ( mouse.x >= col + (elemoffsetx * scroll_scale)  ) and ( mouse.x <= col + (elemoffsetx * scroll_scale)  + offsetcol )) then
-                love.graphics.draw( image[lookuptable( i, y )], col, row+15, 0, scale * scroll_scale )
+            if moveTroughField(lookuptable(i,y)) and pointingMapElem(row, col) then
+                love.graphics.draw( image[lookuptable( i, y )], col, row + (15 * scroll_scale) , 0, scale * scroll_scale )
             else
                 love.graphics.draw( image[lookuptable( i, y )], col, row, 0, scale * scroll_scale)
             end
