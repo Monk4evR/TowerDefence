@@ -52,8 +52,8 @@ function love.load()
     blue = 255/255
     alpha = 0/100
     love.graphics.setBackgroundColor( red, green, blue, alpha )
-    success = love.window.setMode( 1200, 800 )
-
+    success = love.window.setMode( 1366, 768 ) 
+    gameState = 1
     scale = 0.5
     scrollscale = 1
     elemoffsety = math.floor( 320 * scale )
@@ -99,21 +99,18 @@ function love.load()
     stage = GameStages[stCtr]
     
     -- -- -- -- -- -- --
-    -- CREATE DRAWABLE OBJECT for current map
+    -- CREATE DRAWABLE OBJECT's
     image = {}
 
-    for i = 1, 10 , 1 do
-        for y = 1, 10 , 1 do    
-            local type  = lookuptable( i,y )
-            if image[type] == nil then
-                image[type] = love.graphics.newImage( giveTexture( type ))
-            end
-        end    
+    for i, n in ipairs(objProperties) do
+         
+        local type  =  n.asset
+        if type ~= nil then
+            image[i] = love.graphics.newImage( type )
+        end
     end
     -- -- -- -- -- -- --
 end
-
-
 
 
 -- lookuptable - helping function
@@ -122,10 +119,6 @@ function lookuptable( row, col )
     return type
 end
 
--- load texture from enum
-function giveTexture( type )
-    return objProperties[type].asset 
-end
 
 
 function moveTroughField( type )
@@ -137,14 +130,14 @@ function moveTroughField( type )
 end
 
 function love.wheelmoved( x, y )
-    if y > 0 then
+    if y > 0 and scrollscale < 2 then
         scrollscale = scrollscale + ( y / 10 )
-    elseif y < 0 then
+    elseif y < 0  and scrollscale > 0.7 then
         scrollscale = scrollscale - ( math.abs( y ) / 10 )
     end   
 end
 
-function pointingMapElem(row, col)
+function pointingMapElem( row, col )
     if (mouse.y >= row + (elemoffsety * scrollscale) ) and ( mouse.y <= row + (elemoffsety * scrollscale)  + (offsetrow * scrollscale) ) and ( mouse.x >= col + (elemoffsetx * scrollscale) ) and ( mouse.x <= col + (elemoffsetx * scrollscale) + (offsetcol * scrollscale) ) then
         return true
     else
@@ -174,31 +167,32 @@ function love.draw()
     love.graphics.print( "Mouse Coordinates: " .. mouse.x .. ", " .. mouse.y, 10 )
     love.graphics.print( "Mouse scrollscale: " .. scrollscale, 10, 15 )
 
-    if currStageTimer > 60 then
-        love.graphics.print( "TIme left for current satage " .. math.ceil( currStageTimer/60 ), 10, 30 )
-    else
-        love.graphics.print( "TIme left for current satage " .. math.ceil( currStageTimer ), 10, 30 )
-    end
-    -- -- -- -- -- -- --
-    -- DRAWABLE OBJECT for current map
-    
-    for i = 1, stage.size , 1 do
-        row = offsetrow * i * scrollscale 
-        for y = 1, stage.size  , 1 do
-            if i % 2 == 0 then
-                col = offsetcol * y * scrollscale 
-            else
-                col = offsetcoleven * scrollscale  + offsetcol * y * scrollscale 
-            end
 
-            if moveTroughField(lookuptable(i,y)) and pointingMapElem(row, col) then
-                love.graphics.draw( image[lookuptable( i, y )], col, row + (15 * scrollscale) , 0, scale * scrollscale )
-            else
-                love.graphics.draw( image[lookuptable( i, y )], col, row, 0, scale * scrollscale)
-            end
-            col = 0
-        end    
-    end
+        if currStageTimer > 60 then
+            love.graphics.print( "TIme left for current satage " .. math.ceil( currStageTimer/60 ), 10, 30 )
+        else
+            love.graphics.print( "TIme left for current satage " .. math.ceil( currStageTimer ), 10, 30 )
+        end
+        -- -- -- -- -- -- --
+        -- DRAWABLE OBJECT for current map
+        
+        for i = 1, stage.size , 1 do
+            row = offsetrow * i * scrollscale 
+            for y = 1, stage.size  , 1 do
+                if i % 2 == 0 then
+                    col = offsetcol * y * scrollscale 
+                else
+                    col = offsetcoleven * scrollscale  + offsetcol * y * scrollscale 
+                end
+
+                if moveTroughField(lookuptable(i,y)) and pointingMapElem(row, col) then
+                    love.graphics.draw( image[lookuptable( i, y )], col, row + (15 * scrollscale) , 0, scale * scrollscale )
+                else
+                    love.graphics.draw( image[lookuptable( i, y )], col, row, 0, scale * scrollscale)
+                end
+                col = 0
+            end    
+        end
     
     -- -- -- -- -- -- --
 
