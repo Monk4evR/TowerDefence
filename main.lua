@@ -1,3 +1,8 @@
+
+-- -- -- -- -- -- -- 
+-- GLOBAL VARIABLES
+mouse = {}
+-- -- -- -- -- -- -- 
 -- -- -- -- -- -- -- 
 -- ENUM DEFINES
 TailName = {
@@ -15,9 +20,9 @@ EnemyMov = {
     HALFSPEEDWALK = 2,
 }
 -- -- -- -- -- -- -- 
-
 -- -- -- -- -- -- -- 
--- MAP OBJECT PROPERTIES for each type of map object are stored here in columns ([object type] = {prperty1, property2}) in the order: 
+-- MAP OBJECT PROPERTIES 
+-- for each type of map object are stored here in columns ([object type] = {prperty1, property2}) in the order: 
 -- texture name and location
 -- enemy can walk through [0-no; 1-yes, 2-slowed down],
 -- object can be build on it [ 0-no, 1-yes,]
@@ -36,6 +41,8 @@ objProperties = {
     -- [9] = {1,1,1,1,1},
     -- [10] = {1,1,1,1,1}, 
 }
+
+
 -- -- -- -- -- -- -- 
 
 function love.load()
@@ -48,6 +55,7 @@ function love.load()
     success = love.window.setMode( 1200, 800 )
 
     scale = 0.5
+    scroll_scale = 1
     elemoffsety = math.floor( 320 * scale )
     elemoffsetx = math.floor( 160 * scale )
     offsetcol = math.floor( 182 * scale )
@@ -67,8 +75,6 @@ function love.load()
        [10] = {1,1,1,1,1,1,1,1,6,1},   
     }
 
-
-    mouse = {}
 
     -- -- -- -- -- -- --
     -- CREATE DRAWABLE OBJECT for current map
@@ -111,29 +117,52 @@ function moveTroughField( type )
     end
 end
 
+local text = ""
+function love.wheelmoved( x, y )
+    local wheel_scale = scroll_scale
+    if y > 0 then
+        text = "Mouse wheel moved up"
+        scroll_scale = wheel_scale + ( y / 10 )
+    elseif y < 0 then
+        text = "Mouse wheel moved down"
+        scroll_scale = wheel_scale - ( math.abs( y ) / 10 )
+    end   
+end
+
+ 
+-- function love.wheelmoved(x, y)
+--     if y > 0 then
+--         text = "Mouse wheel moved up"
+--     elseif y < 0 then
+--         text = "Mouse wheel moved down"
+--     end
+-- end
+
 function love.draw()
     local col = 0
     local row = 0
+
+
     mouse.x, mouse.y = love.mouse.getPosition()
-       
-    love.graphics.print("Mouse Coordinates: " .. mouse.x .. ", " .. mouse.y)
-
-
+    love.graphics.print( "Mouse Coordinates: " .. mouse.x .. ", " .. mouse.y,10 )
+    love.graphics.print( "Mouse scroll_scale: " .. scroll_scale, 10, 15 )
+    love.graphics.print(text, 10, 30)
+    
     -- -- -- -- -- -- --
     -- DRAWABLE OBJECT for current map
     for i = 1, 10 , 1 do
-        row = offsetrow * i
+        row = offsetrow * i * scroll_scale 
         for y = 1, 10 , 1 do
             if i % 2 == 0 then
-                col = offsetcol * y
+                col = offsetcol * y * scroll_scale 
             else
-                col = offsetcoleven + offsetcol * y
+                col = offsetcoleven * scroll_scale  + offsetcol * y * scroll_scale 
             end
 
-            if ((moveTroughField(lookuptable(i,y)) and mouse.y >= row + elemoffsety ) and ( mouse.y <= row + elemoffsety + offsetrow ) and ( mouse.x >= col + elemoffsetx ) and ( mouse.x <= col + elemoffsetx + offsetcol )) then
-                love.graphics.draw( image[lookuptable( i, y )], col, row+15, 0, scale )
+            if ((moveTroughField(lookuptable(i,y)) and mouse.y >= row + (elemoffsety * scroll_scale)  ) and ( mouse.y <= row + (elemoffsety * scroll_scale)  + offsetrow ) and ( mouse.x >= col + (elemoffsetx * scroll_scale)  ) and ( mouse.x <= col + (elemoffsetx * scroll_scale)  + offsetcol )) then
+                love.graphics.draw( image[lookuptable( i, y )], col, row+15, 0, scale * scroll_scale )
             else
-                love.graphics.draw( image[lookuptable( i, y )], col, row, 0, scale )
+                love.graphics.draw( image[lookuptable( i, y )], col, row, 0, scale * scroll_scale)
             end
             col = 0
         end    
