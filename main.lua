@@ -55,7 +55,7 @@ function love.load()
     success = love.window.setMode( 1200, 800 )
 
     scale = 0.5
-    scroll_scale = 1
+    scrollscale = 1
     elemoffsety = math.floor( 320 * scale )
     elemoffsetx = math.floor( 160 * scale )
     offsetcol = math.floor( 182 * scale )
@@ -72,10 +72,32 @@ function love.load()
        [7] = {1,1,1,1,5,1,1,1,1,1},
        [8] = {1,1,1,1,1,1,1,1,1,1},
        [9] = {1,1,5,1,1,1,1,1,1,1},
-       [10] = {1,1,1,1,1,1,1,1,6,1},   
+       [10] = {1,1,1,1,1,1,1,1,6,1},
+       size = 10,   
+       timer = 60,
     }
+    Map2 = {
+        [1] = {1,1,1,1,1,1,1,1,1,1,1,1},
+        [2] = {1,2,3,3,4,1,1,1,1,1,1,1},
+        [3] = {1,1,1,1,1,1,1,1,1,1,1,1},
+        [4] = {1,1,1,1,1,1,1,1,1,1,1,1},
+        [5] = {1,1,1,1,6,1,1,1,6,1,1,1},
+        [6] = {1,1,1,1,1,1,1,1,1,1,1,1},
+        [7] = {1,1,1,1,5,1,1,1,1,1,1,1},
+        [8] = {1,1,1,1,1,1,1,1,1,1,1,1},
+        [9] = {1,1,5,1,1,1,1,1,1,1,1,1},
+        [10] = {1,1,1,1,1,1,1,1,6,1,1,1}, 
+        [11] = {1,1,1,1,1,1,1,1,6,1,1,1},
+        [12] = {1,1,1,1,1,1,1,1,6,1,1,1},  
+        size = 12,
+        timer = 120,
+     }
 
-
+    GameStages = { Map1, Map2}
+    currStageTimer = GameStages[1].timer
+    stCtr = 1
+    stage = GameStages[stCtr]
+    
     -- -- -- -- -- -- --
     -- CREATE DRAWABLE OBJECT for current map
     image = {}
@@ -96,7 +118,7 @@ end
 
 -- lookuptable - helping function
 function lookuptable( row, col )
-    local type = Map1[row][col]
+    local type = stage[row][col]
     return type
 end
 
@@ -116,14 +138,14 @@ end
 
 function love.wheelmoved( x, y )
     if y > 0 then
-        scroll_scale = scroll_scale + ( y / 10 )
+        scrollscale = scrollscale + ( y / 10 )
     elseif y < 0 then
-        scroll_scale = scroll_scale - ( math.abs( y ) / 10 )
+        scrollscale = scrollscale - ( math.abs( y ) / 10 )
     end   
 end
 
 function pointingMapElem(row, col)
-    if (mouse.y >= row + (elemoffsety * scroll_scale) ) and ( mouse.y <= row + (elemoffsety * scroll_scale)  + (offsetrow * scroll_scale) ) and ( mouse.x >= col + (elemoffsetx * scroll_scale) ) and ( mouse.x <= col + (elemoffsetx * scroll_scale) + (offsetcol * scroll_scale) ) then
+    if (mouse.y >= row + (elemoffsety * scrollscale) ) and ( mouse.y <= row + (elemoffsety * scrollscale)  + (offsetrow * scrollscale) ) and ( mouse.x >= col + (elemoffsetx * scrollscale) ) and ( mouse.x <= col + (elemoffsetx * scrollscale) + (offsetcol * scrollscale) ) then
         return true
     else
         return false
@@ -133,6 +155,15 @@ end
 -- update world with dt
 function love.update( dt )
     mouse.x, mouse.y = love.mouse.getPosition()
+    currStageTimer = currStageTimer - dt
+
+    
+    if currStageTimer <= 0 then
+        stCtr = stCtr + 1
+        stage = GameStages[stCtr]
+        currStageTimer = stage.timer
+    end
+
 end
 
 
@@ -141,27 +172,34 @@ function love.draw()
     local row = 0
     
     love.graphics.print( "Mouse Coordinates: " .. mouse.x .. ", " .. mouse.y, 10 )
-    love.graphics.print( "Mouse scroll_scale: " .. scroll_scale, 10, 15 )
-    
+    love.graphics.print( "Mouse scrollscale: " .. scrollscale, 10, 15 )
+
+    if currStageTimer > 60 then
+        love.graphics.print( "TIme left for current satage " .. math.ceil( currStageTimer/60 ), 10, 30 )
+    else
+        love.graphics.print( "TIme left for current satage " .. math.ceil( currStageTimer ), 10, 30 )
+    end
     -- -- -- -- -- -- --
     -- DRAWABLE OBJECT for current map
-    for i = 1, 10 , 1 do
-        row = offsetrow * i * scroll_scale 
-        for y = 1, 10 , 1 do
+    
+    for i = 1, stage.size , 1 do
+        row = offsetrow * i * scrollscale 
+        for y = 1, stage.size  , 1 do
             if i % 2 == 0 then
-                col = offsetcol * y * scroll_scale 
+                col = offsetcol * y * scrollscale 
             else
-                col = offsetcoleven * scroll_scale  + offsetcol * y * scroll_scale 
+                col = offsetcoleven * scrollscale  + offsetcol * y * scrollscale 
             end
 
             if moveTroughField(lookuptable(i,y)) and pointingMapElem(row, col) then
-                love.graphics.draw( image[lookuptable( i, y )], col, row + (15 * scroll_scale) , 0, scale * scroll_scale )
+                love.graphics.draw( image[lookuptable( i, y )], col, row + (15 * scrollscale) , 0, scale * scrollscale )
             else
-                love.graphics.draw( image[lookuptable( i, y )], col, row, 0, scale * scroll_scale)
+                love.graphics.draw( image[lookuptable( i, y )], col, row, 0, scale * scrollscale)
             end
             col = 0
         end    
     end
+    
     -- -- -- -- -- -- --
 
 end
