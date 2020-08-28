@@ -42,9 +42,11 @@ objProperties = {
     -- [10] = {1,1,1,1,1}, 
 }
 
+-- -- -- -- -- -- -- 
+-- GLOBAL VARIABLES END
 
 -- -- -- -- -- -- -- 
-
+-- LOAD
 function love.load()
 
     red = 40/255
@@ -61,6 +63,9 @@ function love.load()
     offsetcol = math.floor( 182 * scale )
     offsetrow = math.floor( 79 * scale )
     offsetcoleven = math.floor( 91 * scale )
+    mapoffsetx = 50 
+    mapoffsety = 100
+    
 
     Map1 = {
        [1] = {1,1,1,1,1,1,1,1,1,1},
@@ -74,7 +79,7 @@ function love.load()
        [9] = {1,1,5,1,1,1,1,1,1,1},
        [10] = {1,1,1,1,1,1,1,1,6,1},
        size = 10,   
-       timer = 60,
+       timer = 10,
     }
     Map2 = {
         [1] = {1,1,1,1,1,1,1,1,1,1,1,1},
@@ -111,9 +116,11 @@ function love.load()
     end
     -- -- -- -- -- -- --
 end
+-- -- -- -- -- -- -- 
+-- LOAD END
 
-
--- lookuptable - helping function
+-- -- -- -- -- -- -- 
+-- helping functions
 function lookuptable( row, col )
     local type = stage[row][col]
     return type
@@ -145,44 +152,78 @@ function pointingMapElem( row, col )
     end
 end
 
--- update world with dt
+function love.mousepressed( x, y, button , istouch )
+
+    if gameState == 1 then
+        gameState = 2
+    end 
+    if gameState == 3 then
+        gameState = 2
+    end 
+end
+-- -- -- -- -- -- -- 
+-- helping functions END
+
+-- -- -- -- -- -- -- 
+-- UPDATE world with dt
 function love.update( dt )
     mouse.x, mouse.y = love.mouse.getPosition()
-    currStageTimer = currStageTimer - dt
+        
+    if gameState == 2 then
+        currStageTimer = currStageTimer - dt
 
     
-    if currStageTimer <= 0 then
-        stCtr = stCtr + 1
-        stage = GameStages[stCtr]
-        currStageTimer = stage.timer
+        if currStageTimer <= 0 then
+            stCtr = stCtr + 1
+            stage = GameStages[stCtr]
+            currStageTimer = stage.timer
+            gameState = 3
+        end
     end
 
 end
+-- -- -- -- -- -- -- 
+-- UPDATE END
 
-
+debugPrint = 1
+-- -- -- -- -- -- -- 
+-- DRAW
 function love.draw()
     local col = 0
     local row = 0
-    
-    love.graphics.print( "Mouse Coordinates: " .. mouse.x .. ", " .. mouse.y, 10 )
-    love.graphics.print( "Mouse scrollscale: " .. scrollscale, 10, 15 )
+
+    -- debug prints
+    if debugPrint == 1 then
+        love.graphics.print( "Mouse Coordinates: " .. mouse.x .. ", " .. mouse.y, 500 )
+        love.graphics.print( "Mouse scrollscale: " .. scrollscale, 500, 15 )
+    end
+
+    -- game stats prints
+    love.graphics.print( "CURRENT STAGE " .. stCtr, 10, 15 )
+    if currStageTimer > 60 then
+        love.graphics.print( "Time left for current satage " .. math.ceil( currStageTimer/60 ) .. " minutes", 10, 30 )
+    else
+        love.graphics.print( "Time left for current satage " .. math.ceil( currStageTimer ) .. " seconds", 10, 30 )
+    end
 
 
-        if currStageTimer > 60 then
-            love.graphics.print( "TIme left for current satage " .. math.ceil( currStageTimer/60 ), 10, 30 )
-        else
-            love.graphics.print( "TIme left for current satage " .. math.ceil( currStageTimer ), 10, 30 )
-        end
-        -- -- -- -- -- -- --
-        -- DRAWABLE OBJECT for current map
-        
+
+    if gameState == 1 then
+        love.graphics.print( "CLICK ENYWHERE TO START THE GAME" , 200, 200 )
+    end
+    if gameState == 3 then
+        love.graphics.print( "YOU WON THE STAGE ".. stCtr-1 .." CLICK ENYWHERE TO START STAGE" .. stCtr , 200, 200 )
+    end
+    -- -- -- -- -- -- --
+    -- DRAWABLE OBJECT for current map
+    if gameState == 2 then
         for i = 1, stage.size , 1 do
-            row = offsetrow * i * scrollscale 
+            row = offsetrow * i * scrollscale + mapoffsetx
             for y = 1, stage.size  , 1 do
                 if i % 2 == 0 then
-                    col = offsetcol * y * scrollscale 
+                    col = offsetcol * y * scrollscale - mapoffsety
                 else
-                    col = offsetcoleven * scrollscale  + offsetcol * y * scrollscale 
+                    col = offsetcoleven * scrollscale  + offsetcol * y * scrollscale - mapoffsety
                 end
 
                 if moveTroughField(lookuptable(i,y)) and pointingMapElem(row, col) then
@@ -193,7 +234,9 @@ function love.draw()
                 col = 0
             end    
         end
-    
+    end        
     -- -- -- -- -- -- --
 
 end
+-- -- -- -- -- -- -- 
+-- DRAW END
