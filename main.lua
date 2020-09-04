@@ -28,13 +28,15 @@ EnemyMov = {
 -- object can be build on it [ 0-no, 1-yes,]
 -- map object can be cleared from osbstacles [0-no, 1-yes]
 -- type of object that this obcject can be changed to [0-default, object number]
-objProperties = {
+ObjProperties = {
     [1] = {asset= "assets/grass_N.png", walk= EnemyMov.FULLSPEEDWALK, build= true, clear= false, typec= 0},
     [2] = {asset= "assets/river_start_N.png",walk= EnemyMov.HALFSPEEDWALK, build= false, clear= false, typec= 0},
     [3] = {asset= "assets/river_straight_N.png",walk= EnemyMov.HALFSPEEDWALK, build= false, clear= false, typec= 0},
     [4] = {asset= "assets/river_end_S.png",walk= EnemyMov.HALFSPEEDWALK, build= false, clear= false, typec= 0},
-    [5] = {asset= "assets/water_N.png",walk= EnemyMov.NOWALK, build= false, clear= true, typec= 0},
-    [6] = {asset= "assets/stone_rocks_N.png",walk= EnemyMov.HALFSPEEDWALK, build= false, clear= false, typec= 1},
+    [5] = {asset= "assets/water_N.png",walk= EnemyMov.NOWALK, build= false, clear= false, typec= 0},
+    [6] = {asset= "assets/stone_rocks_N.png",walk= EnemyMov.HALFSPEEDWALK, build= false, clear= true, typec= 1},
+    [7] = {asset= "assets/unit_tower_N.png",walk= EnemyMov.NOWALK, build= false, clear= true, typec= 1},
+    [8] = {asset= "assets/unit_tower_N.png",walk= EnemyMov.NOWALK, build= false, clear= true, typec= 1},
 
     -- [7] = {1,1,1,1,1},
     -- [8] = {1,1,1,1,1},
@@ -63,8 +65,11 @@ function love.load()
     offsetcol = math.floor( 182 * scale )
     offsetrow = math.floor( 79 * scale )
     offsetcoleven = math.floor( 91 * scale )
-    mapoffsetx = 50 
-    mapoffsety = 100
+    mapoffsetx = 683
+    mapoffsety = 384
+    menuX = 1000
+    midpixX = 0
+    midpixY = 0
     
 
     Map1 = {
@@ -79,7 +84,9 @@ function love.load()
        [9] = {1,1,5,1,1,1,1,1,1,1},
        [10] = {1,1,1,1,1,1,1,1,6,1},
        size = 10,   
-       timer = 10,
+       timer = 30,
+       defenceTowers = {7},
+
     }
     Map2 = {
         [1] = {1,1,1,1,1,1,1,1,1,1,1,1},
@@ -95,7 +102,8 @@ function love.load()
         [11] = {1,1,1,1,1,1,1,1,6,1,1,1},
         [12] = {1,1,1,1,1,1,1,1,6,1,1,1},  
         size = 12,
-        timer = 120,
+        timer = 20,
+        defenceTowers = {7,8},
      }
 
     GameStages = { Map1, Map2}
@@ -107,7 +115,7 @@ function love.load()
     -- CREATE DRAWABLE OBJECT's
     image = {}
 
-    for i, n in ipairs(objProperties) do
+    for i, n in ipairs(ObjProperties) do
          
         local type  =  n.asset
         if type ~= nil then
@@ -135,17 +143,23 @@ function moveTroughField( type )
         return false
     end
 end
+scrollX = 0
+scrollY = 0
 
 function love.wheelmoved( x, y )
     if y > 0 and scrollscale < 2 then
         scrollscale = scrollscale + ( y / 10 )
+        scrollX = mouse.x
+        scrollY = mouse.y
     elseif y < 0  and scrollscale > 0.7 then
         scrollscale = scrollscale - ( math.abs( y ) / 10 )
+        scrollX = mouse.x
+        scrollY = mouse.y
     end   
 end
 
 function pointingMapElem( row, col )
-    if (mouse.y >= row + (elemoffsety * scrollscale) ) and ( mouse.y <= row + (elemoffsety * scrollscale)  + (offsetrow * scrollscale) ) and ( mouse.x >= col + (elemoffsetx * scrollscale) ) and ( mouse.x <= col + (elemoffsetx * scrollscale) + (offsetcol * scrollscale) ) then
+    if (mouse.y >= row + mapoffsety + (elemoffsety * scrollscale) ) and ( mouse.y <= row + mapoffsety + (elemoffsety * scrollscale)  + (offsetrow * scrollscale) ) and ( mouse.x >= col + mapoffsetx + (elemoffsetx * scrollscale) ) and ( mouse.x <= col + mapoffsetx + (elemoffsetx * scrollscale) + (offsetcol * scrollscale) ) then
         return true
     else
         return false
@@ -191,6 +205,8 @@ debugPrint = 1
 function love.draw()
     local col = 0
     local row = 0
+    local menXloc = menuX
+    local menYloc = 0
 
     -- debug prints
     if debugPrint == 1 then
@@ -212,27 +228,45 @@ function love.draw()
         love.graphics.print( "CLICK ENYWHERE TO START THE GAME" , 200, 200 )
     end
     if gameState == 3 then
-        love.graphics.print( "YOU WON THE STAGE ".. stCtr-1 .." CLICK ENYWHERE TO START STAGE" .. stCtr , 200, 200 )
+        love.graphics.print( "YOU WON THE STAGE ".. stCtr-1 .. "!!!" .. " CLICK ENYWHERE TO START STAGE" .. stCtr , 200, 200 )
     end
     -- -- -- -- -- -- --
     -- DRAWABLE OBJECT for current map
     if gameState == 2 then
+        midpixY = offsetrow * (stage.size+1) /2 + elemoffsetx
+        midpixX = offsetcol * (stage.size+1) /2 + elemoffsety
+
+        local acctualScale = scale * scrollscale
         for i = 1, stage.size , 1 do
-            row = offsetrow * i * scrollscale + mapoffsetx
+
+            row = (offsetrow * i - midpixY) * scrollscale
+            -- row = mouse.y - (offsetrow * i ) * scrollscale
+
             for y = 1, stage.size  , 1 do
                 if i % 2 == 0 then
-                    col = offsetcol * y * scrollscale - mapoffsety
+                    col = (offsetcol * y - midpixX ) * scrollscale 
+                    -- col = mouse.x - (offsetcol * y ) * scrollscale 
                 else
-                    col = offsetcoleven * scrollscale  + offsetcol * y * scrollscale - mapoffsety
+                    col = (offsetcoleven + offsetcol * y - midpixX ) * scrollscale
+                    -- col = mouse.x - (offsetcoleven + offsetcol * y ) * scrollscale
                 end
-
+                
                 if moveTroughField(lookuptable(i,y)) and pointingMapElem(row, col) then
-                    love.graphics.draw( image[lookuptable( i, y )], col, row + (15 * scrollscale) , 0, scale * scrollscale )
+                    love.graphics.draw( image[lookuptable( i, y )], col, row + (15 * scrollscale) , 0, acctualScale ,acctualScale, -mapoffsetx/acctualScale, -mapoffsety/acctualScale)
                 else
-                    love.graphics.draw( image[lookuptable( i, y )], col, row, 0, scale * scrollscale)
+                    love.graphics.draw( image[lookuptable( i, y )], col, row, 0, acctualScale, acctualScale, -mapoffsetx/acctualScale, -mapoffsety/acctualScale)
                 end
                 col = 0
             end    
+        end
+        for i, n in ipairs(stage.defenceTowers) do
+            if i < 3 then
+                love.graphics.draw( image[n], menXloc+offsetcol*i, menYloc, 0, scale )
+            elseif i < 5 then
+                love.graphics.draw( image[n], menXloc, menYloc+offsetrow*i-2, 0, scale )
+            else
+            end
+        
         end
     end        
     -- -- -- -- -- -- --
