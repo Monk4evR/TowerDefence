@@ -35,8 +35,8 @@ ObjProperties = {
     [4] = {asset= "assets/river_end_S.png",walk= EnemyMov.HALFSPEEDWALK, build= false, clear= false, typec= 0},
     [5] = {asset= "assets/water_N.png",walk= EnemyMov.NOWALK, build= false, clear= false, typec= 0},
     [6] = {asset= "assets/stone_rocks_N.png",walk= EnemyMov.HALFSPEEDWALK, build= false, clear= true, typec= 1},
-    [7] = {asset= "assets/unit_tower_N.png",walk= EnemyMov.NOWALK, build= false, clear= true, typec= 1},
-    [8] = {asset= "assets/unit_tower_N.png",walk= EnemyMov.NOWALK, build= false, clear= true, typec= 1},
+    [7] = {asset= "assets/gun_tower_N.png",walk= EnemyMov.NOWALK, build= false, clear= true, typec= 1},
+    [8] = {asset= "assets/gun_tower2_N.png",walk= EnemyMov.NOWALK, build= false, clear= true, typec= 1},
 
     -- [7] = {1,1,1,1,1},
     -- [8] = {1,1,1,1,1},
@@ -84,7 +84,7 @@ function love.load()
        [9] = {1,1,5,1,1,1,1,1,1,1},
        [10] = {1,1,1,1,1,1,1,1,6,1},
        size = 10,   
-       timer = 30,
+       timer = 10,
        defenceTowers = {7},
 
     }
@@ -102,11 +102,11 @@ function love.load()
         [11] = {1,1,1,1,1,1,1,1,6,1,1,1},
         [12] = {1,1,1,1,1,1,1,1,6,1,1,1},  
         size = 12,
-        timer = 20,
+        timer = 10,
         defenceTowers = {7,8},
      }
 
-    GameStages = { Map1, Map2}
+    GameStages = { Map1, Map2, n = 2 }
     currStageTimer = GameStages[1].timer
     stCtr = 1
     stage = GameStages[stCtr]
@@ -168,10 +168,7 @@ end
 
 function love.mousepressed( x, y, button , istouch )
 
-    if gameState == 1 then
-        gameState = 2
-    end 
-    if gameState == 3 then
+    if gameState == 1 or gameState == 3 or gameState == 4 then
         gameState = 2
     end 
 end
@@ -186,13 +183,21 @@ function love.update( dt )
     if gameState == 2 then
         currStageTimer = currStageTimer - dt
 
-    
         if currStageTimer <= 0 then
-            stCtr = stCtr + 1
-            stage = GameStages[stCtr]
-            currStageTimer = stage.timer
-            gameState = 3
+            if stCtr <= table.getn{GameStages} then
+                stCtr = stCtr + 1
+                stage = GameStages[stCtr]
+                currStageTimer = stage.timer
+                gameState = 3
+            else
+                gameState = 4
+            end
         end
+    end
+    if gameState == 4 then
+        stCtr = 1
+        stage = GameStages[1]
+        currStageTimer = GameStages[1].timer
     end
 
 end
@@ -229,6 +234,9 @@ function love.draw()
     end
     if gameState == 3 then
         love.graphics.print( "YOU WON THE STAGE ".. stCtr-1 .. "!!!" .. " CLICK ENYWHERE TO START STAGE" .. stCtr , 200, 200 )
+    end
+    if gameState == 4 then
+        love.graphics.print( "YOU WON THE GAME!!!" .. " CLICK ENYWHERE TO START NEW game" , 200, 200 )
     end
     -- -- -- -- -- -- --
     -- DRAWABLE OBJECT for current map
