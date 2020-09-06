@@ -67,7 +67,7 @@ function love.load()
     offsetcoleven = math.floor( 91 * scale )
     mapoffsetx = 683
     mapoffsety = 384
-    menuX = 1000
+    menuXoffset = 1000
     midpixX = 0
     midpixY = 0
     
@@ -84,8 +84,8 @@ function love.load()
        [9] = {1,1,5,1,1,1,1,1,1,1},
        [10] = {1,1,1,1,1,1,1,1,6,1},
        size = 10,   
-       timer = 10,
-       defenceTowers = {7},
+       timer = 15,
+       defenceTowers = {7,7,8,8,7,7,8,8},
 
     }
     Map2 = {
@@ -103,7 +103,7 @@ function love.load()
         [12] = {1,1,1,1,1,1,1,1,6,1,1,1},  
         size = 12,
         timer = 10,
-        defenceTowers = {7,8},
+        defenceTowers = {7,8,7,8},
      }
 
     GameStages = { Map1, Map2, n = 2 }
@@ -122,6 +122,7 @@ function love.load()
             image[i] = love.graphics.newImage( type )
         end
     end
+    transparent = love.graphics.newImage("assets/transparent_bcgr.png")
     -- -- -- -- -- -- --
 end
 -- -- -- -- -- -- -- 
@@ -210,8 +211,9 @@ debugPrint = 1
 function love.draw()
     local col = 0
     local row = 0
-    local menXloc = menuX
-    local menYloc = 0
+    local menuXlocal = menuXoffset
+    local menuYlocal = 0
+    local menuModifier = 0
 
     -- debug prints
     if debugPrint == 1 then
@@ -267,14 +269,15 @@ function love.draw()
                 col = 0
             end    
         end
-        for i, n in ipairs(stage.defenceTowers) do
-            if i < 3 then
-                love.graphics.draw( image[n], menXloc+offsetcol*i, menYloc, 0, scale )
-            elseif i < 5 then
-                love.graphics.draw( image[n], menXloc, menYloc+offsetrow*i-2, 0, scale )
-            else
-            end
         
+        for i, n in ipairs(stage.defenceTowers) do
+
+            love.graphics.draw( transparent, menuXlocal + offsetcol * (i - menuModifier), menuYlocal + (offsetrow * menuModifier), 0, scale )
+            love.graphics.draw( image[n], menuXlocal + offsetcol * (i - menuModifier), menuYlocal + (offsetrow * menuModifier), 0, scale )
+            if i % 2 == 0 then
+                menuModifier = menuModifier + 2
+            end
+
         end
     end        
     -- -- -- -- -- -- --
