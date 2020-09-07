@@ -110,6 +110,8 @@ function love.load()
     currStageTimer = GameStages[1].timer
     stCtr = 1
     stage = GameStages[stCtr]
+    pointingMenuElemVar = {isOnMenu = false, tower = nil}
+    towerSelected = false
     
     -- -- -- -- -- -- --
     -- CREATE DRAWABLE OBJECT's
@@ -166,12 +168,23 @@ function pointingMapElem( row, col )
         return false
     end
 end
+function pointingMenuElem(X, Y)
+    if ( mouse.y >= Y + elemoffsety) and ( mouse.y <= Y + elemoffsety + offsetrow ) and ( mouse.x >= X + elemoffsetx ) and ( mouse.x <= X + elemoffsetx + offsetcol ) then
+        return true
+    else
+        return false
+    end
+end
 
 function love.mousepressed( x, y, button , istouch )
 
     if gameState == 1 or gameState == 3 or gameState == 4 then
         gameState = 2
     end 
+    if gameState == 2 and button == 1 and pointingMenuElemVar.isOnMenu == true and pointingMenuElemVar.tower ~= nil  then
+        towerSelected = true
+    end
+
 end
 -- -- -- -- -- -- -- 
 -- helping functions END
@@ -238,7 +251,7 @@ function love.draw()
         love.graphics.print( "YOU WON THE STAGE ".. stCtr-1 .. "!!!" .. " CLICK ENYWHERE TO START STAGE" .. stCtr , 200, 200 )
     end
     if gameState == 4 then
-        love.graphics.print( "YOU WON THE GAME!!!" .. " CLICK ENYWHERE TO START NEW game" , 200, 200 )
+        love.graphics.print( "YOU WON THE GAME!!!" .. " CLICK ENYWHERE TO START NEW GAME" , 200, 200 )
     end
     -- -- -- -- -- -- --
     -- DRAWABLE OBJECT for current map
@@ -271,13 +284,26 @@ function love.draw()
         end
         
         for i, n in ipairs(stage.defenceTowers) do
+            local X = menuXlocal + offsetcol * (i - menuModifier)
+            local Y = menuYlocal + (offsetrow * menuModifier)
 
-            love.graphics.draw( transparent, menuXlocal + offsetcol * (i - menuModifier), menuYlocal + (offsetrow * menuModifier), 0, scale )
-            love.graphics.draw( image[n], menuXlocal + offsetcol * (i - menuModifier), menuYlocal + (offsetrow * menuModifier), 0, scale )
+            love.graphics.draw( transparent, X , Y , 0, scale )
+
+            if pointingMenuElem(X,Y) then
+                love.graphics.draw( image[n], X-40*scale, Y-40*scale, 0, scale * 1.1)
+                pointingMenuElemVar = {isOnMenu = true, tower = image[n]}
+            else
+                love.graphics.draw( image[n], X, Y, 0, scale )
+            end              
+
             if i % 2 == 0 then
                 menuModifier = menuModifier + 2
             end
 
+        end
+
+        if towerSelected then
+            love.graphics.draw( pointingMenuElemVar.tower, mouse.x - elemoffsetx -70*scale, mouse.y - elemoffsety - 30*scale, 0, scale)
         end
     end        
     -- -- -- -- -- -- --
