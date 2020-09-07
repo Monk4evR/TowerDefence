@@ -62,6 +62,8 @@ function love.load()
     scrollscale = 1
     elemoffsety = math.floor( 320 * scale )
     elemoffsetx = math.floor( 160 * scale )
+    toweroffsety = math.floor( 350 * scale )
+    toweroffsetx = math.floor( 230 * scale )
     offsetcol = math.floor( 182 * scale )
     offsetrow = math.floor( 79 * scale )
     offsetcoleven = math.floor( 91 * scale )
@@ -70,6 +72,8 @@ function love.load()
     menuXoffset = 1000
     midpixX = 0
     midpixY = 0
+    scrollX = 0
+    scrollY = 0
     
 
     Map1 = {
@@ -84,7 +88,7 @@ function love.load()
        [9] = {1,1,5,1,1,1,1,1,1,1},
        [10] = {1,1,1,1,1,1,1,1,6,1},
        size = 10,   
-       timer = 15,
+       timer = 10,
        defenceTowers = {7,7,8,8,7,7,8,8},
 
     }
@@ -102,7 +106,7 @@ function love.load()
         [11] = {1,1,1,1,1,1,1,1,6,1,1,1},
         [12] = {1,1,1,1,1,1,1,1,6,1,1,1},  
         size = 12,
-        timer = 10,
+        timer = 20,
         defenceTowers = {7,8,7,8},
      }
 
@@ -112,7 +116,10 @@ function love.load()
     stage = GameStages[stCtr]
     pointingMenuElemVar = {isOnMenu = false, tower = nil}
     towerSelected = false
-    
+    pointingMapElemVar = {isOnTail = false, x=nil, y=nil}
+    towerPlaced = false
+    towerCancelled = false
+
     -- -- -- -- -- -- --
     -- CREATE DRAWABLE OBJECT's
     image = {}
@@ -133,21 +140,19 @@ end
 -- -- -- -- -- -- -- 
 -- helping functions
 function lookuptable( row, col )
-    local type = stage[row][col]
-    return type
+    local object = stage[row][col]
+    return object
 end
 
 
-
-function moveTroughField( type )
-    if type == TailName.GREENLAND then
+function moveTroughField( object )
+    if type(object) == "number" and object == TailName.GREENLAND then
         return true
     else
         return false
     end
 end
-scrollX = 0
-scrollY = 0
+
 
 function love.wheelmoved( x, y )
     if y > 0 and scrollscale < 2 then
@@ -182,7 +187,18 @@ function love.mousepressed( x, y, button , istouch )
         gameState = 2
     end 
     if gameState == 2 and button == 1 and pointingMenuElemVar.isOnMenu == true and pointingMenuElemVar.tower ~= nil  then
+        
         towerSelected = true
+        pointingMenuElemVar.isOnMenu = false
+    else
+        towerSelected = false
+    end
+    if gameState == 2 and button == 1 and towerSelected == true and pointingMapElemVar.isOnTail == true and pointingMapElemVar.x ~= nil and pointingMapElemVar.y ~= nil then
+        towerPlaced = true
+        towerSelected = false
+        
+    else
+        towerPlaced = false
     end
 
 end
@@ -203,6 +219,9 @@ function love.update( dt )
                 stage = GameStages[stCtr]
                 currStageTimer = stage.timer
                 gameState = 3
+                towerSelected = false
+                pointingMenuElemVar.isOnMenu = false
+                pointingMenuElemVar.tower = nil
             else
                 gameState = 4
             end
@@ -213,7 +232,13 @@ function love.update( dt )
         stage = GameStages[1]
         currStageTimer = GameStages[1].timer
     end
-
+    if gameState == 2 and towerPlaced == true then
+        local x = pointingMapElemVar.x 
+        local y = pointingMapElemVar.y
+        local newTower = {ground = stage[x][y], tower = pointingMenuElemVar.tower}
+        stage[x][y] = newTower
+        towerPlaced = false
+    end
 end
 -- -- -- -- -- -- -- 
 -- UPDATE END
@@ -227,6 +252,7 @@ function love.draw()
     local menuXlocal = menuXoffset
     local menuYlocal = 0
     local menuModifier = 0
+    pointingMapElemVar.isOnTail = false
 
     -- debug prints
     if debugPrint == 1 then
@@ -265,19 +291,28 @@ function love.draw()
             row = (offsetrow * i - midpixY) * scrollscale
             -- row = mouse.y - (offsetrow * i ) * scrollscale
 
-            for y = 1, stage.size  , 1 do
+            for j = 1, stage.size  , 1 do
                 if i % 2 == 0 then
-                    col = (offsetcol * y - midpixX ) * scrollscale 
-                    -- col = mouse.x - (offsetcol * y ) * scrollscale 
+                    col = (offsetcol * j - midpixX ) * scrollscale 
+                    -- col = mouse.x - (offsetcol * j ) * scrollscale 
                 else
-                    col = (offsetcoleven + offsetcol * y - midpixX ) * scrollscale
-                    -- col = mouse.x - (offsetcoleven + offsetcol * y ) * scrollscale
+                    col = (offsetcoleven + offsetcol * j - midpixX ) * scrollscale
+                    -- col = mouse.x - (offsetcoleven + offsetcol * j ) * scrollscale
                 end
-                
-                if moveTroughField(lookuptable(i,y)) and pointingMapElem(row, col) then
-                    love.graphics.draw( image[lookuptable( i, y )], col, row + (15 * scrollscale) , 0, acctualScale ,acctualScale, -mapoffsetx/acctualScale, -mapoffsety/acctualScale)
+                local object = lookuptable( i, j )
+                if moveTroughField(object) and pointingMapElem(row, col) then
+                    
+                    love.graphics.draw( image[object], col, row + (15 * scrollscale) , 0, acctualScale ,acctualScale, -mapoffsetx/acctualScale, -mapoffsety/acctualScale)
+                    pointingMapElemVar.isOnTail = true
+                    pointingMapElemVar.x = i
+                    pointingMapElemVar.y = j
                 else
-                    love.graphics.draw( image[lookuptable( i, y )], col, row, 0, acctualScale, acctualScale, -mapoffsetx/acctualScale, -mapoffsety/acctualScale)
+                    if type(object) == "number" then
+                        love.graphics.draw( image[object], col, row, 0, acctualScale, acctualScale, -mapoffsetx/acctualScale, -mapoffsety/acctualScale)
+                    else
+                        love.graphics.draw( image[object.ground], col, row, 0, acctualScale, acctualScale, -mapoffsetx/acctualScale, -mapoffsety/acctualScale)
+                        love.graphics.draw( image[object.tower], col, row, 0, acctualScale, acctualScale, -mapoffsetx/acctualScale, -mapoffsety/acctualScale)
+                     end
                 end
                 col = 0
             end    
@@ -291,7 +326,9 @@ function love.draw()
 
             if pointingMenuElem(X,Y) then
                 love.graphics.draw( image[n], X-40*scale, Y-40*scale, 0, scale * 1.1)
-                pointingMenuElemVar = {isOnMenu = true, tower = image[n]}
+                if pointingMenuElemVar.isOnMenu == false then
+                    pointingMenuElemVar = {isOnMenu = true, tower = n}
+                end
             else
                 love.graphics.draw( image[n], X, Y, 0, scale )
             end              
@@ -303,7 +340,7 @@ function love.draw()
         end
 
         if towerSelected then
-            love.graphics.draw( pointingMenuElemVar.tower, mouse.x - elemoffsetx -70*scale, mouse.y - elemoffsety - 30*scale, 0, scale)
+            love.graphics.draw( image[pointingMenuElemVar.tower], mouse.x - toweroffsetx, mouse.y - elemoffsety, 0, scale)
         end
     end        
     -- -- -- -- -- -- --
