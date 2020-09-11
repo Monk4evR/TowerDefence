@@ -88,9 +88,10 @@ function love.load()
        [9] = {1,1,5,1,1,1,1,1,1,1},
        [10] = {1,1,1,1,1,1,1,1,6,1},
        size = 10,   
-       timer = 10,
+       timer = 100,
        defenceTowers = {7,7,8,8,7,7,8,8},
-
+       spawnPoint = {x = 1, y = 6},
+       destination = {x = 10, y = 6}
     }
     Map2 = {
         [1] = {1,1,1,1,1,1,1,1,1,1,1,1},
@@ -108,9 +109,12 @@ function love.load()
         size = 12,
         timer = 20,
         defenceTowers = {7,8,7,8},
+        spawnPoint = {x = 1, y = 6},
+        destination = {x = 12, y = 6}
      }
 
     GameStages = { Map1, Map2, n = 2 }
+    GraphforDijkstra = {}
     currStageTimer = GameStages[1].timer
     stCtr = 1
     stage = GameStages[stCtr]
@@ -119,7 +123,7 @@ function love.load()
     pointingMapElemVar = {isOnTail = false, x=nil, y=nil}
     towerPlaced = false
     towerCancelled = false
-
+    
     -- -- -- -- -- -- --
     -- CREATE DRAWABLE OBJECT's
     image = {}
@@ -173,6 +177,7 @@ function pointingMapElem( row, col )
         return false
     end
 end
+
 function pointingMenuElem(X, Y)
     if ( mouse.y >= Y + elemoffsety) and ( mouse.y <= Y + elemoffsety + offsetrow ) and ( mouse.x >= X + elemoffsetx ) and ( mouse.x <= X + elemoffsetx + offsetcol ) then
         return true
@@ -182,23 +187,126 @@ function pointingMenuElem(X, Y)
 end
 
 function love.mousepressed( x, y, button , istouch )
-
     if gameState == 1 or gameState == 3 or gameState == 4 then
         gameState = 2
     end 
     if gameState == 2 and button == 1 and pointingMenuElemVar.isOnMenu == true and pointingMenuElemVar.tower ~= nil  then
-        
-        towerSelected = true
-        pointingMenuElemVar.isOnMenu = false
+        towerSelected = true 
     else
         towerSelected = false
     end
     if gameState == 2 and button == 1 and towerSelected == true and pointingMapElemVar.isOnTail == true and pointingMapElemVar.x ~= nil and pointingMapElemVar.y ~= nil then
         towerPlaced = true
-        towerSelected = false
-        
     else
         towerPlaced = false
+    end
+end
+
+function love.keypressed( key, scancode, isrepeat )
+    if key == "escape" and towerSelected == true then
+        pointingMenuElemVar.isOnMenu = false
+        towerSelected = false
+    end
+end
+
+function crateGraphforDijkstra()
+local MapForCostCalculation = {}
+    for i = 1, stage.size , 1 do
+        GraphforDijkstra[i] = {}
+        for j = 1, stage.size  , 1 do
+            -- if  moveTroughField( lookuptable(i,y) ) == true then
+                GraphforDijkstra[i][j] = 0
+            -- else
+            --     GraphforDijkstra[i][j] = 1000
+            -- end
+        end
+    end
+    local destX = stage.destination.x
+    local destY = stage.destination.y
+    GraphforDijkstra[destY][destX] = 1
+
+    local value = 1
+
+    for a =1, 100, 1 do
+        for i = 1, stage.size, 1 do
+            for j = 1, stage.size, 1 do
+            
+                if  GraphforDijkstra[i][j] == value then
+                    if i % 2 == 0 then --even Tails
+                        if i > 1 then
+                            if GraphforDijkstra[i-1][j] == 0 then
+                                GraphforDijkstra[i-1][j] = value + 1
+                            end
+                            if j > 1 then
+                                if GraphforDijkstra[i-1][j-1] == 0 then
+                                    GraphforDijkstra[i-1][j-1] = value + 1
+                                end
+                            end
+                            if j < stage.size then
+                                if GraphforDijkstra[i-1][j+1] == 0 then
+                                    GraphforDijkstra[i-1][j+1] = value + 1
+                                end
+                            end
+                        end
+
+                        if j > 1 then
+                            if GraphforDijkstra[i][j-1] == 0 then
+                                GraphforDijkstra[i][j-1] = value + 1    
+                            end
+                        end
+
+                        if j < stage.size then
+                            if GraphforDijkstra[i][j+1] == 0 then
+                                GraphforDijkstra[i][j+1] = value + 1
+                            end
+                        end
+
+                        if i < stage.size then
+                            if GraphforDijkstra[i+1][j] == 0 then
+                                GraphforDijkstra[i+1][j] = value + 1
+                            end
+                        end
+                    else -- odd Tails
+                        if j > 1 then    
+                            if GraphforDijkstra[i][j-1] == 0 then
+                                GraphforDijkstra[i][j-1] = value + 1
+                            end
+                        end
+                        
+                        if j < stage.size then
+                            if GraphforDijkstra[i][j+1] == 0 then
+                                GraphforDijkstra[i][j+1] = value + 1
+                            end
+                        end
+                        if i > 1 then
+                            if GraphforDijkstra[i-1][j] == 0 then
+                                GraphforDijkstra[i-1][j] = value + 1
+                            end
+                        end
+                        if i < stage.size then
+                            if GraphforDijkstra[i+1][j] == 0 then
+                                GraphforDijkstra[i+1][j] = value + 1
+                            end
+                            if j > 1 then
+                                if GraphforDijkstra[i+1][j-1] == 0 then
+                                    GraphforDijkstra[i+1][j-1] = value + 1
+                                end
+                            end
+                            if j < stage.size then
+                                if GraphforDijkstra[i+1][j+1] == 0 then
+                                    GraphforDijkstra[i+1][j+1] = value + 1
+                                end
+                            end
+                        end
+
+                    end
+                    
+                end 
+                
+            end
+
+        end
+        value = value + 1
     end
 
 end
@@ -208,11 +316,9 @@ end
 -- -- -- -- -- -- -- 
 -- UPDATE world with dt
 function love.update( dt )
-    mouse.x, mouse.y = love.mouse.getPosition()
-        
+    mouse.x, mouse.y = love.mouse.getPosition()     
     if gameState == 2 then
         currStageTimer = currStageTimer - dt
-
         if currStageTimer <= 0 then
             if stCtr <= table.getn{GameStages} then
                 stCtr = stCtr + 1
@@ -231,6 +337,7 @@ function love.update( dt )
         stCtr = 1
         stage = GameStages[1]
         currStageTimer = GameStages[1].timer
+        -- TODO reset maps to default it type()== "table" then [x][x]= .ground
     end
     if gameState == 2 and towerPlaced == true then
         local x = pointingMapElemVar.x 
@@ -247,6 +354,7 @@ debugPrint = 1
 -- -- -- -- -- -- -- 
 -- DRAW
 function love.draw()
+
     local col = 0
     local row = 0
     local menuXlocal = menuXoffset
@@ -268,8 +376,7 @@ function love.draw()
         love.graphics.print( "Time left for current satage " .. math.ceil( currStageTimer ) .. " seconds", 10, 30 )
     end
 
-
-
+    -- game main screan/between stages screans
     if gameState == 1 then
         love.graphics.print( "CLICK ENYWHERE TO START THE GAME" , 200, 200 )
     end
@@ -282,8 +389,11 @@ function love.draw()
     -- -- -- -- -- -- --
     -- DRAWABLE OBJECT for current map
     if gameState == 2 then
+        -- MAP Tailes draw
         midpixY = offsetrow * (stage.size+1) /2 + elemoffsetx
         midpixX = offsetcol * (stage.size+1) /2 + elemoffsety
+
+        crateGraphforDijkstra() -- calkulate paths
 
         local acctualScale = scale * scrollscale
         for i = 1, stage.size , 1 do
@@ -309,15 +419,19 @@ function love.draw()
                 else
                     if type(object) == "number" then
                         love.graphics.draw( image[object], col, row, 0, acctualScale, acctualScale, -mapoffsetx/acctualScale, -mapoffsety/acctualScale)
+                        love.graphics.print("("..i.." , "..j..")", col+elemoffsetx+30, row+elemoffsety, 0,1,1,-mapoffsetx,-mapoffsety)
+                        -- love.graphics.print(GraphforDijkstra[i][j], col+elemoffsetx+10, row+elemoffsety, 0,1,1,-mapoffsetx,-mapoffsety)
                     else
                         love.graphics.draw( image[object.ground], col, row, 0, acctualScale, acctualScale, -mapoffsetx/acctualScale, -mapoffsety/acctualScale)
                         love.graphics.draw( image[object.tower], col, row, 0, acctualScale, acctualScale, -mapoffsetx/acctualScale, -mapoffsety/acctualScale)
+                        love.graphics.print("("..i.." , "..j..")", col+elemoffsetx+30, row+elemoffsety, 0,1,1,-mapoffsetx,-mapoffsety)
+                        -- love.graphics.print(GraphforDijkstra[i][j], col+elemoffsetx+10, row+elemoffsety, 0,1,1,-mapoffsetx,-mapoffsety)
                      end
                 end
                 col = 0
             end    
         end
-        
+        -- Towers selection menu draw
         for i, n in ipairs(stage.defenceTowers) do
             local X = menuXlocal + offsetcol * (i - menuModifier)
             local Y = menuYlocal + (offsetrow * menuModifier)
@@ -338,7 +452,7 @@ function love.draw()
             end
 
         end
-
+        -- Selected tower draw
         if towerSelected then
             love.graphics.draw( image[pointingMenuElemVar.tower], mouse.x - toweroffsetx, mouse.y - elemoffsety, 0, scale)
         end
