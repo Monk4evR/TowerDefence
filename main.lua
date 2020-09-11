@@ -214,11 +214,11 @@ local MapForCostCalculation = {}
     for i = 1, stage.size , 1 do
         GraphforDijkstra[i] = {}
         for j = 1, stage.size  , 1 do
-            -- if  moveTroughField( lookuptable(i,y) ) == true then
+            if  moveTroughField( lookuptable(i,j) ) == true then
                 GraphforDijkstra[i][j] = 0
-            -- else
-            --     GraphforDijkstra[i][j] = 1000
-            -- end
+            else
+                GraphforDijkstra[i][j] = 1000
+            end
         end
     end
     local destX = stage.destination.x
@@ -227,72 +227,72 @@ local MapForCostCalculation = {}
 
     local value = 1
 
-    for a =1, 100, 1 do
+    for a = 1, stage.size*stage.size/2, 1 do
         for i = 1, stage.size, 1 do
             for j = 1, stage.size, 1 do
             
                 if  GraphforDijkstra[i][j] == value then
                     if i % 2 == 0 then --even Tails
-                        if i > 1 then
-                            if GraphforDijkstra[i-1][j] == 0 then
-                                GraphforDijkstra[i-1][j] = value + 1
+                        if j > 1 then
+                            if GraphforDijkstra[i][j-1] == 0 then
+                                GraphforDijkstra[i][j-1] = value + 1
                             end
-                            if j > 1 then
+                            if i > 1 then
                                 if GraphforDijkstra[i-1][j-1] == 0 then
                                     GraphforDijkstra[i-1][j-1] = value + 1
                                 end
                             end
-                            if j < stage.size then
-                                if GraphforDijkstra[i-1][j+1] == 0 then
-                                    GraphforDijkstra[i-1][j+1] = value + 1
-                                end
-                            end
-                        end
-
-                        if j > 1 then
-                            if GraphforDijkstra[i][j-1] == 0 then
-                                GraphforDijkstra[i][j-1] = value + 1    
-                            end
-                        end
-
-                        if j < stage.size then
-                            if GraphforDijkstra[i][j+1] == 0 then
-                                GraphforDijkstra[i][j+1] = value + 1
-                            end
-                        end
-
-                        if i < stage.size then
-                            if GraphforDijkstra[i+1][j] == 0 then
-                                GraphforDijkstra[i+1][j] = value + 1
-                            end
-                        end
-                    else -- odd Tails
-                        if j > 1 then    
-                            if GraphforDijkstra[i][j-1] == 0 then
-                                GraphforDijkstra[i][j-1] = value + 1
-                            end
-                        end
-                        
-                        if j < stage.size then
-                            if GraphforDijkstra[i][j+1] == 0 then
-                                GraphforDijkstra[i][j+1] = value + 1
-                            end
-                        end
-                        if i > 1 then
-                            if GraphforDijkstra[i-1][j] == 0 then
-                                GraphforDijkstra[i-1][j] = value + 1
-                            end
-                        end
-                        if i < stage.size then
-                            if GraphforDijkstra[i+1][j] == 0 then
-                                GraphforDijkstra[i+1][j] = value + 1
-                            end
-                            if j > 1 then
+                            if i < stage.size then
                                 if GraphforDijkstra[i+1][j-1] == 0 then
                                     GraphforDijkstra[i+1][j-1] = value + 1
                                 end
                             end
-                            if j < stage.size then
+                        end
+
+                        if i > 1 then
+                            if GraphforDijkstra[i-1][j] == 0 then
+                                GraphforDijkstra[i-1][j] = value + 1    
+                            end
+                        end
+
+                        if i < stage.size then
+                            if GraphforDijkstra[i+1][j] == 0 then
+                                GraphforDijkstra[i+1][j] = value + 1
+                            end
+                        end
+
+                        if j < stage.size then
+                            if GraphforDijkstra[i][j+1] == 0 then
+                                GraphforDijkstra[i][j+1] = value + 1
+                            end
+                        end
+                    else -- odd Tails
+                        if i > 1 then    
+                            if GraphforDijkstra[i-1][j] == 0 then
+                                GraphforDijkstra[i-1][j] = value + 1
+                            end
+                        end
+                        
+                        if i < stage.size then
+                            if GraphforDijkstra[i+1][j] == 0 then
+                                GraphforDijkstra[i+1][j] = value + 1
+                            end
+                        end
+                        if j > 1 then
+                            if GraphforDijkstra[i][j-1] == 0 then
+                                GraphforDijkstra[i][j-1] = value + 1
+                            end
+                        end
+                        if j < stage.size then
+                            if GraphforDijkstra[i][j+1] == 0 then
+                                GraphforDijkstra[i][j+1] = value + 1
+                            end
+                            if i > 1 then
+                                if GraphforDijkstra[i-1][j+1] == 0 then
+                                    GraphforDijkstra[i-1][j+1] = value + 1
+                                end
+                            end
+                            if i < stage.size then
                                 if GraphforDijkstra[i+1][j+1] == 0 then
                                     GraphforDijkstra[i+1][j+1] = value + 1
                                 end
@@ -419,13 +419,13 @@ function love.draw()
                 else
                     if type(object) == "number" then
                         love.graphics.draw( image[object], col, row, 0, acctualScale, acctualScale, -mapoffsetx/acctualScale, -mapoffsety/acctualScale)
-                        love.graphics.print("("..i.." , "..j..")", col+elemoffsetx+30, row+elemoffsety, 0,1,1,-mapoffsetx,-mapoffsety)
-                        -- love.graphics.print(GraphforDijkstra[i][j], col+elemoffsetx+10, row+elemoffsety, 0,1,1,-mapoffsetx,-mapoffsety)
+                        -- love.graphics.print("("..i.." , "..j..")", col+elemoffsetx+30, row+elemoffsety, 0,1,1,-mapoffsetx,-mapoffsety)
+                        love.graphics.print(GraphforDijkstra[i][j], col+elemoffsetx+10, row+elemoffsety, 0,1,1,-mapoffsetx,-mapoffsety)
                     else
                         love.graphics.draw( image[object.ground], col, row, 0, acctualScale, acctualScale, -mapoffsetx/acctualScale, -mapoffsety/acctualScale)
                         love.graphics.draw( image[object.tower], col, row, 0, acctualScale, acctualScale, -mapoffsetx/acctualScale, -mapoffsety/acctualScale)
-                        love.graphics.print("("..i.." , "..j..")", col+elemoffsetx+30, row+elemoffsety, 0,1,1,-mapoffsetx,-mapoffsety)
-                        -- love.graphics.print(GraphforDijkstra[i][j], col+elemoffsetx+10, row+elemoffsety, 0,1,1,-mapoffsetx,-mapoffsety)
+                        -- love.graphics.print("("..i.." , "..j..")", col+elemoffsetx+30, row+elemoffsety, 0,1,1,-mapoffsetx,-mapoffsety)
+                        love.graphics.print(GraphforDijkstra[i][j], col+elemoffsetx+10, row+elemoffsety, 0,1,1,-mapoffsetx,-mapoffsety)
                      end
                 end
                 col = 0
