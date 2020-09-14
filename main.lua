@@ -228,85 +228,60 @@ local MapForCostCalculation = {}
     local value = 1
 
     for a = 1, stage.size*stage.size/2, 1 do
-        for i = 1, stage.size, 1 do
-            for j = 1, stage.size, 1 do
+        for row = 1, stage.size, 1 do
+            for col = 1, stage.size, 1 do
             
-                if  GraphforDijkstra[i][j] == value then
-                    if i % 2 == 0 then --even Tails
-                        if j > 1 then
-                            if GraphforDijkstra[i][j-1] == 0 then
-                                GraphforDijkstra[i][j-1] = value + 1
-                            end
-                            if i > 1 then
-                                if GraphforDijkstra[i-1][j-1] == 0 then
-                                    GraphforDijkstra[i-1][j-1] = value + 1
-                                end
-                            end
-                            if i < stage.size then
-                                if GraphforDijkstra[i+1][j-1] == 0 then
-                                    GraphforDijkstra[i+1][j-1] = value + 1
-                                end
-                            end
-                        end
+                if  GraphforDijkstra[row][col] == value then
 
-                        if i > 1 then
-                            if GraphforDijkstra[i-1][j] == 0 then
-                                GraphforDijkstra[i-1][j] = value + 1    
-                            end
-                        end
+                    evenOfsset = 0
 
-                        if i < stage.size then
-                            if GraphforDijkstra[i+1][j] == 0 then
-                                GraphforDijkstra[i+1][j] = value + 1
-                            end
-                        end
-
-                        if j < stage.size then
-                            if GraphforDijkstra[i][j+1] == 0 then
-                                GraphforDijkstra[i][j+1] = value + 1
-                            end
-                        end
-                    else -- odd Tails
-                        if i > 1 then    
-                            if GraphforDijkstra[i-1][j] == 0 then
-                                GraphforDijkstra[i-1][j] = value + 1
-                            end
-                        end
-                        
-                        if i < stage.size then
-                            if GraphforDijkstra[i+1][j] == 0 then
-                                GraphforDijkstra[i+1][j] = value + 1
-                            end
-                        end
-                        if j > 1 then
-                            if GraphforDijkstra[i][j-1] == 0 then
-                                GraphforDijkstra[i][j-1] = value + 1
-                            end
-                        end
-                        if j < stage.size then
-                            if GraphforDijkstra[i][j+1] == 0 then
-                                GraphforDijkstra[i][j+1] = value + 1
-                            end
-                            if i > 1 then
-                                if GraphforDijkstra[i-1][j+1] == 0 then
-                                    GraphforDijkstra[i-1][j+1] = value + 1
-                                end
-                            end
-                            if i < stage.size then
-                                if GraphforDijkstra[i+1][j+1] == 0 then
-                                    GraphforDijkstra[i+1][j+1] = value + 1
-                                end
-                            end
-                        end
-
-                    end
+                    if row % 2 ~= 0 then --even Tails
+                        evenOfsset = 1
                     
-                end 
-                
-            end
+                    else -- odd Tails
+                        evenOfsset = 0
+                    end
 
+                    if col > 1 then
+
+                        if GraphforDijkstra[row][col-1] == 0 then
+                            GraphforDijkstra[row][col-1] = value + 1
+                        end
+                        if row > 1 then
+                            if GraphforDijkstra[row-1][col-1 + evenOfsset] == 0 then
+                                GraphforDijkstra[row-1][col-1 + evenOfsset] = value + 1
+                            end
+                        end
+                        if row < stage.size then
+                            if GraphforDijkstra[row+1][col-1 + evenOfsset] == 0 then
+                                GraphforDijkstra[row+1][col-1 + evenOfsset] = value + 1
+                            end
+                        end
+                    end
+
+                    if row > 1 then
+                        if GraphforDijkstra[row-1][col + evenOfsset] == 0 then
+                            GraphforDijkstra[row-1][col + evenOfsset] = value + 1    
+                        end
+                    end
+
+                    if row < stage.size then
+                        if GraphforDijkstra[row+1][col + evenOfsset] == 0 then
+                            GraphforDijkstra[row+1][col + evenOfsset] = value + 1
+                        end
+                    end
+
+                    if col < stage.size then
+                        if GraphforDijkstra[row][col+1] == 0 then
+                            GraphforDijkstra[row][col+1] = value + 1
+                        end
+                    end
+                end 
+            end
         end
+
         value = value + 1
+    
     end
 
 end
