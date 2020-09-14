@@ -123,6 +123,7 @@ function love.load()
     pointingMapElemVar = {isOnTail = false, x=nil, y=nil}
     towerPlaced = false
     towerCancelled = false
+    buildRestricted = false
     
     -- -- -- -- -- -- --
     -- CREATE DRAWABLE OBJECT's
@@ -187,6 +188,7 @@ function pointingMenuElem(X, Y)
 end
 
 function love.mousepressed( x, y, button , istouch )
+    -- local spawnPoint = GraphforDijkstra[stage.spawnPoint.y][stage.spawnPoint.x]
     if gameState == 1 or gameState == 3 or gameState == 4 then
         gameState = 2
     end 
@@ -195,7 +197,7 @@ function love.mousepressed( x, y, button , istouch )
     else
         towerSelected = false
     end
-    if gameState == 2 and button == 1 and towerSelected == true and pointingMapElemVar.isOnTail == true and pointingMapElemVar.x ~= nil and pointingMapElemVar.y ~= nil then
+    if gameState == 2 and button == 1 and towerSelected == true and pointingMapElemVar.isOnTail == true and pointingMapElemVar.x ~= nil and pointingMapElemVar.y ~= nil and GraphforDijkstra[stage.spawnPoint.y][stage.spawnPoint.x] ~= 0 then
         towerPlaced = true
     else
         towerPlaced = false
@@ -242,7 +244,7 @@ local MapForCostCalculation = {}
                         evenOfsset = 0
                     end
 
-                    if col > 1 then
+                    if col >= 1 then
 
                         if GraphforDijkstra[row][col-1] == 0 then
                             GraphforDijkstra[row][col-1] = value + 1
@@ -319,7 +321,40 @@ function love.update( dt )
         local y = pointingMapElemVar.y
         local newTower = {ground = stage[x][y], tower = pointingMenuElemVar.tower}
         stage[x][y] = newTower
+        crateGraphforDijkstra()
+        if GraphforDijkstra[stage.spawnPoint.y][stage.spawnPoint.x] == 0 then
+            stage[x][y] = newTower.ground
+            buildRestricted = true
+        else
+            buildRestricted = false
+        end
         towerPlaced = false
+    end
+
+    
+    local menuXlocal = menuXoffset
+    local menuYlocal = 0
+    local menuModifier = 0
+    for i, n in ipairs(stage.defenceTowers) do
+        local X = menuXlocal + offsetcol * (i - menuModifier)
+        local Y = menuYlocal + (offsetrow * menuModifier)
+
+        if pointingMenuElem(X,Y) then
+            if pointingMenuElemVar.isOnMenu == false then
+                pointingMenuElemVar = {isOnMenu = true, tower = n}
+                love.graphics.print("pointing map elem"..i, 500, 30 )
+            end
+            break
+        else
+            if towerSelected == false then
+                pointingMenuElemVar = {isOnMenu = false, tower = nil}
+            end
+        end              
+
+        if i % 2 == 0 then
+            menuModifier = menuModifier + 2
+        end
+
     end
 end
 -- -- -- -- -- -- -- 
@@ -372,7 +407,7 @@ function love.draw()
 
         local acctualScale = scale * scrollscale
         for i = 1, stage.size , 1 do
-
+            love.graphics.setColor(255,255,255)
             row = (offsetrow * i - midpixY) * scrollscale
             -- row = mouse.y - (offsetrow * i ) * scrollscale
 
@@ -387,10 +422,16 @@ function love.draw()
                 local object = lookuptable( i, j )
                 if moveTroughField(object) and pointingMapElem(row, col) then
                     
-                    love.graphics.draw( image[object], col, row + (15 * scrollscale) , 0, acctualScale ,acctualScale, -mapoffsetx/acctualScale, -mapoffsety/acctualScale)
+                    if buildRestricted then
+                        love.graphics.setColor(255,0,0)
+                        love.graphics.draw( image[object], col, row + (15 * scrollscale) , 0, acctualScale ,acctualScale, -mapoffsetx/acctualScale, -mapoffsety/acctualScale)
+                    else
+                        love.graphics.draw( image[object], col, row + (15 * scrollscale) , 0, acctualScale ,acctualScale, -mapoffsetx/acctualScale, -mapoffsety/acctualScale)
+                    end
                     pointingMapElemVar.isOnTail = true
                     pointingMapElemVar.x = i
                     pointingMapElemVar.y = j
+                    love.graphics.setColor(255,255,255)
                 else
                     if type(object) == "number" then
                         love.graphics.draw( image[object], col, row, 0, acctualScale, acctualScale, -mapoffsetx/acctualScale, -mapoffsety/acctualScale)
@@ -415,9 +456,6 @@ function love.draw()
 
             if pointingMenuElem(X,Y) then
                 love.graphics.draw( image[n], X-40*scale, Y-40*scale, 0, scale * 1.1)
-                if pointingMenuElemVar.isOnMenu == false then
-                    pointingMenuElemVar = {isOnMenu = true, tower = n}
-                end
             else
                 love.graphics.draw( image[n], X, Y, 0, scale )
             end              
@@ -430,6 +468,9 @@ function love.draw()
         -- Selected tower draw
         if towerSelected then
             love.graphics.draw( image[pointingMenuElemVar.tower], mouse.x - toweroffsetx, mouse.y - elemoffsety, 0, scale)
+        end
+        if buildRestricted then
+            love.graphics.print( "CAN'T BUILD THERE", mouse.x - toweroffsetx, mouse.y - elemoffsety, 0, scale)
         end
     end        
     -- -- -- -- -- -- --
